@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="edu.csulb.android.bluetoothmessenger.activities.ChatActivity">
+
+    <ListView
+        android:id="@+id/list_view_messages"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/container_actions"
+        android:layout_alignParentTop="true" />
+
+    <LinearLayout
+        android:id="@+id/container_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#eee"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:weightSum="1.2">
+
+        <EditText
+            android:id="@+id/edit_text_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.6" />
+
+        <ImageButton
+            android:id="@+id/button_send_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.2"
+            android:onClick="buttonClick"
+            android:src="@android:drawable/ic_menu_send" />
+
+        <ImageButton
+            android:id="@+id/button_take_photo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.2"
+            android:onClick="buttonClick"
+            android:src="@android:drawable/ic_menu_camera" />
+
+        <ImageButton
+            android:id="@+id/button_record_audio"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.2"
+            android:onClick="buttonClick"
+            android:src="@android:drawable/ic_btn_speak_now" />
+    </LinearLayout>
+</RelativeLayout>
