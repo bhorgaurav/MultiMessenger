@@ -1,5 +1,6 @@
 package edu.csulb.android.bluetoothmessenger.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +21,7 @@ import edu.csulb.android.bluetoothmessenger.pojos.PeerDevice;
 
 public class ChatActivity extends AppCompatActivity {
 
+    private static final int PICK_IMAGE = 11;
     private PeerDevice device;
     private ChatHelper chatHelper;
     private EditText editTextMessage;
@@ -64,10 +66,25 @@ public class ChatActivity extends AppCompatActivity {
                 chatHelper.sendTextMessage(text);
                 editTextMessage.setText("");
                 break;
-            case R.id.button_take_photo:
+            case R.id.button_pick_photo:
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
                 break;
             case R.id.button_record_audio:
                 break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+            if (data == null) {
+                return;
+            }
+            chatHelper.sendImage(data.getData());
         }
     }
 }

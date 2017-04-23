@@ -6,10 +6,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -71,13 +76,11 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
                         byte[] writeBuf = (byte[]) msg.obj;
                         String writeMessage = new String(writeBuf);
                         messageCallback.gotMessage(new MessageObject(writeMessage, Constants.TYPE_TEXT, true));
-                        System.out.println("writeMessage: " + writeMessage);
                         break;
                     case Constants.MESSAGE_READ:
                         byte[] readBuf = (byte[]) msg.obj;
                         String readMessage = new String(readBuf, 0, msg.arg1);
                         messageCallback.gotMessage(new MessageObject(readMessage, Constants.TYPE_TEXT, false));
-                        System.out.println("readMessage: " + readMessage);
                         break;
                     case Constants.MESSAGE_DEVICE_NAME:
                         connected = true;
@@ -97,14 +100,16 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (mBluetoothAdapter == null) {
-            Toast.makeText(context, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+            callback.notSupported();
             return;
         }
         if (!mBluetoothAdapter.isEnabled()) {
             callback.notEnabled();
+            return;
         }
         if (mBluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             callback.notDiscoverable();
+            return;
         }
 
         receiver = new BroadcastReceiver() {
@@ -146,6 +151,7 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
 
     @Override
     public void connect(int position) {
+        mBluetoothAdapter.cancelDiscovery();
         if (chatService.getState() == BluetoothChatService.STATE_NONE) {
             chatService.start();
         }
@@ -171,8 +177,13 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
     public void close() {
         enabled = false;
         connected = false;
-        context.unregisterReceiver(receiver);
-        chatService.stop();
+        try {
+            context.unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e) {
+        }
+        if (chatService != null) {
+            chatService.stop();
+        }
     }
 
     @Override
@@ -189,7 +200,16 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
     }
 
     @Override
-    public void sendImage() {
+    public void sendImage(Uri data) {
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), data);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+            byte[] b = baos.toByteArray();
+            chatService.write(b);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -4,13 +4,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.provider.MediaStore;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -76,6 +81,7 @@ public class WifiHelper implements HelperInterface, MessageInterface {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
+                System.out.println("action: " + action);
                 if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
                     int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
                     enabled = state == WifiP2pManager.WIFI_P2P_STATE_ENABLED;
@@ -104,6 +110,7 @@ public class WifiHelper implements HelperInterface, MessageInterface {
         };
 
         context.registerReceiver(receiver, intentFilter);
+        mManager.stopPeerDiscovery(mChannel, actionListener);
         mManager.discoverPeers(mChannel, actionListener);
     }
 
@@ -125,7 +132,7 @@ public class WifiHelper implements HelperInterface, MessageInterface {
     @Override
     public void connect(int position) {
         // Picking the first device found on the network.
-        WifiP2pDevice device = peers.get(position);
+        final WifiP2pDevice device = peers.get(position);
 
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
@@ -136,7 +143,7 @@ public class WifiHelper implements HelperInterface, MessageInterface {
             @Override
             public void onSuccess() {
                 connected = true;
-                callback.onConnection(connected, "");
+                callback.onConnection(connected, device.deviceName);
             }
 
             @Override
@@ -176,16 +183,22 @@ public class WifiHelper implements HelperInterface, MessageInterface {
 
     @Override
     public void sendTextMessage(String message) {
-
     }
 
     @Override
-    public void sendImage() {
-
+    public void sendImage(Uri data) {
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), data);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+            byte[] b = baos.toByteArray();
+//            chatService.write(b);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void sendAudio() {
-
     }
 }

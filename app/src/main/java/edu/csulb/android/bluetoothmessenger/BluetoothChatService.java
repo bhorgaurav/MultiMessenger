@@ -200,8 +200,6 @@ public class BluetoothChatService {
         public AcceptThread(boolean secure) {
             BluetoothServerSocket tmp = null;
             mSocketType = secure ? "Secure" : "Insecure";
-
-
             try {
                 if (secure) {
                     tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE,
@@ -294,8 +292,6 @@ public class BluetoothChatService {
             setName("ConnectThread" + mSocketType);
 
             mAdapter.cancelDiscovery();
-
-
             try {
                 mmSocket.connect();
             } catch (IOException e) {
@@ -336,7 +332,6 @@ public class BluetoothChatService {
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
-
             try {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
@@ -353,19 +348,25 @@ public class BluetoothChatService {
             Log.i(TAG, "BEGIN mConnectedThread");
             byte[] buffer = new byte[1024];
             int bytes;
-
             while (mState == STATE_CONNECTED) {
                 try {
                     bytes = mmInStream.read(buffer);
+//                    CkBinData jpgData = new CkBinData();
+//                    fac.OpenForRead("qa_data/jpg/starfish.jpg");
+//                    //  The the first 8 bytes of the JPG file.
+//                    fac.FileReadBd(8,jpgData);
+//                    fac.FileClose();
+//
+//                    //  JPG hex: FFD8FFE000104A46
+//                    //  JPG qp: =FF=D8=FF=E0=00=10JF
+//                    System.out.println("JPG hex: " + jpgData.getEncoded("hex"));
                     mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                 } catch (IOException e) {
-                    Log.e(TAG, "disconnected", e);
                     connectionLost();
                     break;
                 }
             }
         }
-
 
         public void write(byte[] buffer) {
             try {

@@ -6,10 +6,11 @@ public interface Callback {
 
     void peersChanged(List<?> peerDeviceList);
 
+    void notSupported();
+
     void notEnabled();
 
     void notDiscoverable();
 
     void onConnection(boolean connected, String deviceName);
-
 }

@@ -1,6 +1,7 @@
 package edu.csulb.android.bluetoothmessenger.helpers;
 
 import android.content.Context;
+import android.net.Uri;
 
 import edu.csulb.android.bluetoothmessenger.interfaces.Callback;
 import edu.csulb.android.bluetoothmessenger.interfaces.HelperInterface;
@@ -83,11 +84,11 @@ public class ChatHelper implements HelperInterface, MessageInterface {
     }
 
     @Override
-    public void sendImage() {
+    public void sendImage(Uri data) {
         if (bluetoothHelper.isEnabled()) {
-            bluetoothHelper.sendImage();
+            bluetoothHelper.sendImage(data);
         } else if (wifiHelper.isEnabled()) {
-            wifiHelper.sendImage();
+            wifiHelper.sendImage(data);
         }
     }
 

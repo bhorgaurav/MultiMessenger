@@ -3,6 +3,7 @@ package edu.csulb.android.bluetoothmessenger.adapters;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,11 +44,10 @@ public class MessageAdapter extends ArrayAdapter<MessageObject> {
         }
 
         MessageObject m = objects.get(position);
-        ViewGroup.LayoutParams params = h.linearLayout.getLayoutParams();
         if (m.isSender) {
-            m.message = "You: " + m.message;
+            h.linearLayout.setGravity(Gravity.END);
         } else {
-            m.message = "Other: " + m.message;
+            h.linearLayout.setGravity(Gravity.START);
         }
 
         switch (m.type) {

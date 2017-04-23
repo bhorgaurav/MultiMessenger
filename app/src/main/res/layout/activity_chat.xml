@@ -37,7 +37,7 @@
             android:src="@android:drawable/ic_menu_send" />
 
         <ImageButton
-            android:id="@+id/button_take_photo"
+            android:id="@+id/button_pick_photo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.2"
