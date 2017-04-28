@@ -1,6 +1,7 @@
 package edu.csulb.android.bluetoothmessenger.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.Gravity;
@@ -55,13 +56,14 @@ public class MessageAdapter extends ArrayAdapter<MessageObject> {
                 h.tvMessage.setVisibility(View.VISIBLE);
                 h.imageViewPhoto.setVisibility(View.GONE);
                 h.audioView.setVisibility(View.GONE);
-
-                h.tvMessage.setText(m.message);
+                h.tvMessage.setText((String) m.message);
                 break;
             case Constants.TYPE_IMAGE:
                 h.tvMessage.setVisibility(View.GONE);
                 h.imageViewPhoto.setVisibility(View.VISIBLE);
                 h.audioView.setVisibility(View.GONE);
+
+                h.imageViewPhoto.setImageBitmap((Bitmap) m.message);
                 break;
             case Constants.TYPE_AUDIO:
                 h.tvMessage.setVisibility(View.GONE);

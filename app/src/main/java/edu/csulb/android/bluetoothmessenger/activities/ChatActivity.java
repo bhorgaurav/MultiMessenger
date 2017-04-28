@@ -2,12 +2,16 @@ package edu.csulb.android.bluetoothmessenger.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +55,6 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void gotMessage(Object object) {
                 MessageObject m = (MessageObject) object;
-                System.out.println("m.message: " + m.message);
                 messageObjectList.add(m);
                 adapter.notifyDataSetChanged();
             }
@@ -62,9 +65,11 @@ public class ChatActivity extends AppCompatActivity {
         switch (view.getId()) {
             case R.id.button_send_message:
                 String text = editTextMessage.getText().toString();
-                System.out.println(text);
-                chatHelper.sendTextMessage(text);
-                editTextMessage.setText("");
+                if (!TextUtils.isEmpty(text)) {
+                    chatHelper.sendTextMessage(text.getBytes());
+                    editTextMessage.setText("");
+                    messageObjectList.add(new MessageObject(text, Constants.TYPE_TEXT, true));
+                }
                 break;
             case R.id.button_pick_photo:
                 Intent intent = new Intent();
@@ -84,7 +89,14 @@ public class ChatActivity extends AppCompatActivity {
             if (data == null) {
                 return;
             }
-            chatHelper.sendImage(data.getData());
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+                messageObjectList.add(new MessageObject(bitmap, Constants.TYPE_IMAGE, true));
+                adapter.notifyDataSetChanged();
+                chatHelper.sendImage(bitmap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

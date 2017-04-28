@@ -7,14 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.MediaStore;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -74,13 +71,35 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
                         break;
                     case Constants.MESSAGE_WRITE:
                         byte[] writeBuf = (byte[]) msg.obj;
-                        String writeMessage = new String(writeBuf);
-                        messageCallback.gotMessage(new MessageObject(writeMessage, Constants.TYPE_TEXT, true));
+                        switch (msg.arg2) {
+                            case Constants.TYPE_TEXT:
+                                String writeMessage = new String(writeBuf);
+                                messageCallback.gotMessage(new MessageObject(writeMessage, Constants.TYPE_TEXT, true));
+                                break;
+                            case Constants.TYPE_IMAGE:
+                                Bitmap bmp = BitmapFactory.decodeByteArray(writeBuf, 0, writeBuf.length);
+                                messageCallback.gotMessage(new MessageObject(bmp, Constants.TYPE_IMAGE, true));
+                                break;
+                            case Constants.TYPE_AUDIO:
+//                                messageCallback.gotMessage(new MessageObject(bmp, Constants.TYPE_AUDIO, true));
+                                break;
+                        }
                         break;
                     case Constants.MESSAGE_READ:
                         byte[] readBuf = (byte[]) msg.obj;
-                        String readMessage = new String(readBuf, 0, msg.arg1);
-                        messageCallback.gotMessage(new MessageObject(readMessage, Constants.TYPE_TEXT, false));
+                        switch (msg.arg2) {
+                            case Constants.TYPE_TEXT:
+                                String writeMessage = new String(readBuf, 0, msg.arg1);
+                                messageCallback.gotMessage(new MessageObject(writeMessage, Constants.TYPE_TEXT, false));
+                                break;
+                            case Constants.TYPE_IMAGE:
+                                Bitmap bmp = BitmapFactory.decodeByteArray(readBuf, 0, readBuf.length);
+                                messageCallback.gotMessage(new MessageObject(bmp, Constants.TYPE_IMAGE, false));
+                                break;
+                            case Constants.TYPE_AUDIO:
+//                                messageCallback.gotMessage(new MessageObject(bmp, Constants.TYPE_AUDIO, true));
+                                break;
+                        }
                         break;
                     case Constants.MESSAGE_DEVICE_NAME:
                         connected = true;
@@ -115,6 +134,7 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
         receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
+                System.out.println("action: " + action);
                 if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     addDevice(device);
@@ -152,11 +172,12 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
     @Override
     public void connect(int position) {
         mBluetoothAdapter.cancelDiscovery();
-        if (chatService.getState() == BluetoothChatService.STATE_NONE) {
-            chatService.start();
-        }
         BluetoothDevice device = pairedDevices.get(position);
-        chatService.connect(device, true);
+        if (chatService.getState() == BluetoothChatService.STATE_NONE) {
+            chatService.startAndConnect(device);
+        } else {
+            chatService.connect(device, false);
+        }
     }
 
     @Override
@@ -187,33 +208,12 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
     }
 
     @Override
-    public void sendTextMessage(String message) {
+    public void sendTextMessage(byte[] message) {
         if (chatService.getState() != BluetoothChatService.STATE_CONNECTED) {
             Toast.makeText(context, "Not connected to any device.", Toast.LENGTH_SHORT).show();
             return;
         }
-        System.out.println("message.length(): " + message.length());
-        if (message.length() > 0) {
-            byte[] send = message.getBytes();
-            chatService.write(send);
-        }
-    }
-
-    @Override
-    public void sendImage(Uri data) {
-        try {
-            Bitmap bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), data);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
-            byte[] b = baos.toByteArray();
-            chatService.write(b);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void sendAudio() {
+        chatService.write(message);
     }
 
     private void addDevice(BluetoothDevice device) {

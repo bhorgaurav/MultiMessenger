@@ -80,9 +80,7 @@ public class MainActivity extends SuperActivity implements View.OnClickListener,
             public void onConnection(boolean connected, String deviceName) {
                 if (connected) {
                     PeerDevice device = null;
-                    System.out.println("deviceName: " + deviceName);
                     for (PeerDevice dev : peerDeviceList) {
-                        System.out.println("dev.name: " + dev.name);
                         if (dev.name.equals(deviceName)) {
                             device = dev;
                             break;

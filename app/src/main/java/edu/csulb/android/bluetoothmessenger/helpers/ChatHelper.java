@@ -1,8 +1,14 @@
 package edu.csulb.android.bluetoothmessenger.helpers;
 
 import android.content.Context;
-import android.net.Uri;
+import android.graphics.Bitmap;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+
+import edu.csulb.android.bluetoothmessenger.Constants;
 import edu.csulb.android.bluetoothmessenger.interfaces.Callback;
 import edu.csulb.android.bluetoothmessenger.interfaces.HelperInterface;
 import edu.csulb.android.bluetoothmessenger.interfaces.MessageCallback;
@@ -15,6 +21,7 @@ public class ChatHelper implements HelperInterface, MessageInterface {
 
     private BluetoothHelper bluetoothHelper;
     private WifiHelper wifiHelper;
+    private Context context;
     private MessageCallback messageCallback;
 
     private ChatHelper(Callback callback) {
@@ -30,8 +37,10 @@ public class ChatHelper implements HelperInterface, MessageInterface {
 
     @Override
     public void init(Context context) {
+
         bluetoothHelper = new BluetoothHelper(context, callback);
         wifiHelper = new WifiHelper(context, callback);
+        this.context = context;
         // Init wifi first
         wifiHelper.init(context);
     }
@@ -74,31 +83,35 @@ public class ChatHelper implements HelperInterface, MessageInterface {
     }
 
     @Override
-    public void sendTextMessage(String message) {
-        System.out.println("bluetoothHelper.isConnected(): " + bluetoothHelper.isConnected());
+    public void sendTextMessage(byte[] b) {
         if (bluetoothHelper.isConnected()) {
-            bluetoothHelper.sendTextMessage(message);
+            bluetoothHelper.sendTextMessage(b);
         } else if (wifiHelper.isConnected()) {
-            wifiHelper.sendTextMessage(message);
+            wifiHelper.sendTextMessage(b);
         }
     }
 
-    @Override
-    public void sendImage(Uri data) {
-        if (bluetoothHelper.isEnabled()) {
-            bluetoothHelper.sendImage(data);
-        } else if (wifiHelper.isEnabled()) {
-            wifiHelper.sendImage(data);
+    public void sendImage(Bitmap bitmap) {
+        try {
+            // Convert image to bytes
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+            byte[] b = baos.toByteArray();
+
+            JSONObject json = new JSONObject();
+            json.put(Constants.MESSAGE_TYPE, Constants.TYPE_IMAGE);
+            json.put(Constants.MESSAGE_SIZE, b.length);
+
+            // Send length and then the original message
+            sendTextMessage(json.toString().getBytes());
+            sendTextMessage(b);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
-    @Override
     public void sendAudio() {
-        if (bluetoothHelper.isEnabled()) {
-            bluetoothHelper.sendAudio();
-        } else if (wifiHelper.isEnabled()) {
-            wifiHelper.sendAudio();
-        }
+
     }
 
     @Override

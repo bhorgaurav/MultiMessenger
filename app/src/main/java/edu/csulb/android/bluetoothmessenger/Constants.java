@@ -21,4 +21,6 @@ public interface Constants {
     String DEVICE_NAME = "device_name";
     String DEVICE = "device";
 
+    String MESSAGE_TYPE = "MESSAGE_TYPE";
+    String MESSAGE_SIZE = "MESSAGE_SIZE";
 }

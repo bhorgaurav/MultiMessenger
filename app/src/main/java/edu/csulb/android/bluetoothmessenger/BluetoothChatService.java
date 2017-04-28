@@ -10,6 +10,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -191,6 +194,11 @@ public class BluetoothChatService {
         BluetoothChatService.this.start();
     }
 
+    public void startAndConnect(BluetoothDevice device) {
+        start();
+        connect(device, false);
+    }
+
 
     private class AcceptThread extends Thread {
 
@@ -346,21 +354,38 @@ public class BluetoothChatService {
 
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
-            byte[] buffer = new byte[1024];
-            int bytes;
+            byte[] fileBuffer = null;
+            int bytes = 0, expectedFileSize = 0, messageType = Constants.TYPE_IMAGE;
+            boolean isProcessing = false;
             while (mState == STATE_CONNECTED) {
                 try {
-                    bytes = mmInStream.read(buffer);
-//                    CkBinData jpgData = new CkBinData();
-//                    fac.OpenForRead("qa_data/jpg/starfish.jpg");
-//                    //  The the first 8 bytes of the JPG file.
-//                    fac.FileReadBd(8,jpgData);
-//                    fac.FileClose();
-//
-//                    //  JPG hex: FFD8FFE000104A46
-//                    //  JPG qp: =FF=D8=FF=E0=00=10JF
-//                    System.out.println("JPG hex: " + jpgData.getEncoded("hex"));
-                    mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+                    if (isProcessing) {
+                        byte[] buffer = new byte[1024];
+                        int currentSize = mmInStream.read(buffer);
+                        System.arraycopy(buffer, 0, fileBuffer, bytes, currentSize);
+                        bytes += currentSize;
+                        if (bytes == expectedFileSize) {
+                            mHandler.obtainMessage(Constants.MESSAGE_READ, expectedFileSize, messageType, fileBuffer).sendToTarget();
+                            isProcessing = false;
+                            bytes = 0;
+                        }
+                    } else {
+                        byte[] buffer = new byte[1024];
+                        bytes = mmInStream.read(buffer);
+                        try {
+                            // Message is a JSON. Next set of messages will be audio or image.
+                            JSONObject json = new JSONObject(new String(buffer, 0, bytes));
+                            expectedFileSize = json.getInt(Constants.MESSAGE_SIZE);
+                            messageType = json.getInt(Constants.MESSAGE_TYPE);
+                            fileBuffer = new byte[expectedFileSize];
+                            isProcessing = true;
+                            bytes = 0;
+                        } catch (JSONException e) {
+                            mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, Constants.TYPE_TEXT, buffer).sendToTarget();
+                            isProcessing = false;
+                            bytes = 0;
+                        }
+                    }
                 } catch (IOException e) {
                     connectionLost();
                     break;
@@ -371,7 +396,7 @@ public class BluetoothChatService {
         public void write(byte[] buffer) {
             try {
                 mmOutStream.write(buffer);
-                mHandler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer).sendToTarget();
+                mmOutStream.flush();
             } catch (IOException e) {
                 Log.e(TAG, "Exception during write", e);
             }
