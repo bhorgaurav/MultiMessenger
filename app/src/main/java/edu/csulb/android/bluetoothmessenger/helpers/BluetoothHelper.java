@@ -8,10 +8,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -97,7 +100,19 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
                                 messageCallback.gotMessage(new MessageObject(bmp, Constants.TYPE_IMAGE, false));
                                 break;
                             case Constants.TYPE_AUDIO:
-//                                messageCallback.gotMessage(new MessageObject(bmp, Constants.TYPE_AUDIO, true));
+                                try {
+                                    File f = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "Recording_" + System.nanoTime() + ".aac");
+                                    if (!f.exists()) {
+                                        f.createNewFile();
+                                    }
+                                    FileOutputStream fos = new FileOutputStream(f);
+                                    fos.write(readBuf);
+                                    fos.flush();
+                                    fos.close();
+                                    messageCallback.gotMessage(new MessageObject(f, Constants.TYPE_AUDIO, false));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                                 break;
                         }
                         break;

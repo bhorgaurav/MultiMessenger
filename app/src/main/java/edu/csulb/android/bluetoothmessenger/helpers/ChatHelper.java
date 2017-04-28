@@ -110,8 +110,14 @@ public class ChatHelper implements HelperInterface, MessageInterface {
         }
     }
 
-    public void sendAudio() {
+    public void sendAudio(byte[] bytes) throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put(Constants.MESSAGE_TYPE, Constants.TYPE_AUDIO);
+        json.put(Constants.MESSAGE_SIZE, bytes.length);
 
+        // Send length and then the original message
+        sendTextMessage(json.toString().getBytes());
+        sendTextMessage(bytes);
     }
 
     @Override

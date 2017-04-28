@@ -28,14 +28,6 @@ public class MainActivity extends SuperActivity implements View.OnClickListener,
     private static final int REQUEST_PERMISSION_BT = 22;
     private static final int REQUEST_ENABLE_BT = 23;
 
-    static {
-        try {
-            System.loadLibrary("chilkat");
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("Native code library failed to load.\n" + e);
-        }
-    }
-
     private ChatHelper chatHelper;
     private List<PeerDevice> peerDeviceList;
     private DeviceAdapter adapter;
