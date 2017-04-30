@@ -50,21 +50,20 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
     private ChatHelper chatHelper;
     private EditText editTextMessage;
     private List<MessageObject> messageObjectList;
-    private ListView listView;
+    private static ListView listView;
     private static MessageAdapter adapter;
     private AudioRecorder mAudioRecorder;
     private File mAudioFile;
 
     public static void addMessage(byte[] message) {
-        System.out.println("addMessage");
         if (isProcessing) {
             switch (messageType) {
                 case Constants.TYPE_TEXT:
-                    adapter.add(new MessageObject(new String(message), Constants.TYPE_TEXT, false));
+                    addToList(new MessageObject(new String(message), Constants.TYPE_TEXT, false));
                     break;
                 case Constants.TYPE_IMAGE:
                     Bitmap bmp = BitmapFactory.decodeByteArray(message, 0, message.length);
-                    adapter.add(new MessageObject(bmp, Constants.TYPE_IMAGE, false));
+                    addToList(new MessageObject(bmp, Constants.TYPE_IMAGE, false));
                     break;
                 case Constants.TYPE_AUDIO:
                     try {
@@ -77,7 +76,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
                         fos.flush();
                         fos.close();
 
-                        adapter.add(new MessageObject(f, Constants.TYPE_AUDIO, false));
+                        addToList(new MessageObject(f, Constants.TYPE_AUDIO, false));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -92,7 +91,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
                 messageType = json.getInt(Constants.MESSAGE_TYPE);
                 isProcessing = true;
             } catch (JSONException e) {
-                adapter.add(new MessageObject(new String(message), Constants.TYPE_TEXT, false));
+                addToList(new MessageObject(new String(message), Constants.TYPE_TEXT, false));
                 isProcessing = false;
             }
         }
@@ -121,9 +120,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
             @Override
             public void gotMessage(Object object) {
                 MessageObject m = (MessageObject) object;
-                messageObjectList.add(m);
-                adapter.notifyDataSetChanged();
-                listView.scrollListBy(1);
+                addToList(m);
             }
         });
         mAudioRecorder = AudioRecorder.getInstance();
@@ -137,9 +134,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
                     chatHelper.sendTextMessage(text.getBytes());
 
                     editTextMessage.setText("");
-                    messageObjectList.add(new MessageObject(text, Constants.TYPE_TEXT, true));
-                    adapter.notifyDataSetChanged();
-                    listView.scrollListBy(1);
+                    addToList(new MessageObject(text, Constants.TYPE_TEXT, true));
                 }
                 break;
             case R.id.button_pick_photo:
@@ -160,8 +155,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
             }
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
-                messageObjectList.add(new MessageObject(bitmap, Constants.TYPE_IMAGE, true));
-                adapter.notifyDataSetChanged();
+                addToList(new MessageObject(bitmap, Constants.TYPE_IMAGE, true));
                 chatHelper.sendImage(bitmap);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -196,11 +190,14 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
             }
 
             File temp = mAudioFile;
-            messageObjectList.add(new MessageObject(temp, Constants.TYPE_AUDIO, true));
-            adapter.notifyDataSetChanged();
-            listView.scrollListBy(1);
+            addToList(new MessageObject(temp, Constants.TYPE_AUDIO, true));
         }
         return true;
+    }
+
+    private static void addToList(MessageObject messageObject) {
+        adapter.add(messageObject);
+        listView.setSelection(adapter.getCount() - 1);
     }
 
     @Override
