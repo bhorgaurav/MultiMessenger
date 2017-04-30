@@ -18,6 +18,8 @@ public interface HelperInterface {
 
     void toggle();
 
+    void sendTextMessage(byte[] b);
+
     void close();
 
 }

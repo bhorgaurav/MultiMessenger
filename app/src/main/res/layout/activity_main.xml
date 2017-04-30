@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="edu.csulb.android.bluetoothmessenger.activities.MainActivity">
 
-    <ListView
-        android:id="@+id/list_view_devices"
+    <fragment
+        android:id="@+id/fragment_wifi"
+        class="edu.csulb.android.bluetoothmessenger.fragments.WifiFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fastScrollEnabled="true" />
+        android:layout_height="match_parent" />
 
-</RelativeLayout>
+    <fragment
+        android:id="@+id/fragment_bluetooth"
+        class="edu.csulb.android.bluetoothmessenger.fragments.BluetoothFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

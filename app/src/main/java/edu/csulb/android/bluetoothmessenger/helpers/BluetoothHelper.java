@@ -24,11 +24,10 @@ import edu.csulb.android.bluetoothmessenger.Constants;
 import edu.csulb.android.bluetoothmessenger.interfaces.Callback;
 import edu.csulb.android.bluetoothmessenger.interfaces.HelperInterface;
 import edu.csulb.android.bluetoothmessenger.interfaces.MessageCallback;
-import edu.csulb.android.bluetoothmessenger.interfaces.MessageInterface;
 import edu.csulb.android.bluetoothmessenger.pojos.MessageObject;
 import edu.csulb.android.bluetoothmessenger.pojos.PeerDevice;
 
-public class BluetoothHelper implements HelperInterface, MessageInterface {
+public class BluetoothHelper implements HelperInterface {
 
     private Context context;
     private Callback callback;
@@ -141,9 +140,9 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
             callback.notEnabled();
             return;
         }
+
         if (mBluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             callback.notDiscoverable();
-            return;
         }
 
         receiver = new BroadcastReceiver() {
@@ -186,12 +185,16 @@ public class BluetoothHelper implements HelperInterface, MessageInterface {
 
     @Override
     public void connect(int position) {
-        mBluetoothAdapter.cancelDiscovery();
-        BluetoothDevice device = pairedDevices.get(position);
-        if (chatService.getState() == BluetoothChatService.STATE_NONE) {
-            chatService.startAndConnect(device);
-        } else {
-            chatService.connect(device, false);
+        try {
+            mBluetoothAdapter.cancelDiscovery();
+            BluetoothDevice device = pairedDevices.get(position);
+            if (chatService.getState() == BluetoothChatService.STATE_NONE) {
+                chatService.startAndConnect(device);
+            } else {
+                chatService.connect(device, false);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

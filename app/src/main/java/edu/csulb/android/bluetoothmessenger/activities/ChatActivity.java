@@ -83,7 +83,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
                 adapter.notifyDataSetChanged();
             }
         });
-
         mAudioRecorder = AudioRecorder.getInstance();
     }
 
@@ -95,6 +94,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
                     chatHelper.sendTextMessage(text.getBytes());
                     editTextMessage.setText("");
                     messageObjectList.add(new MessageObject(text, Constants.TYPE_TEXT, true));
+                    adapter.notifyDataSetChanged();
                 }
                 break;
             case R.id.button_pick_photo:
@@ -126,7 +126,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        System.out.println("event.getAction(): " + event.getAction());
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             mAudioFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "Recording_" + System.nanoTime() + ".aac");
             mAudioRecorder.prepareRecord(MediaRecorder.AudioSource.MIC, MediaRecorder.OutputFormat.AAC_ADTS, MediaRecorder.AudioEncoder.AAC, mAudioFile);

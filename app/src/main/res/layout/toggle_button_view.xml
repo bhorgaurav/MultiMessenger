@@ -9,8 +9,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:checked="false"
-        android:textOff="WiFi"
-        android:textOn="Bluetooth"
+        android:textOff="Bluetooth"
+        android:textOn="WiFi"
         app:showText="true" />
 
 </RelativeLayout>

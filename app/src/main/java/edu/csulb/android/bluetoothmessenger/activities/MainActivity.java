@@ -1,98 +1,32 @@
 package edu.csulb.android.bluetoothmessenger.activities;
 
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v7.widget.SwitchCompat;
 import android.view.Menu;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import edu.csulb.android.bluetoothmessenger.Constants;
 import edu.csulb.android.bluetoothmessenger.R;
-import edu.csulb.android.bluetoothmessenger.adapters.DeviceAdapter;
-import edu.csulb.android.bluetoothmessenger.helpers.ChatHelper;
-import edu.csulb.android.bluetoothmessenger.interfaces.Callback;
-import edu.csulb.android.bluetoothmessenger.pojos.PeerDevice;
+import edu.csulb.android.bluetoothmessenger.fragments.BluetoothFragment;
+import edu.csulb.android.bluetoothmessenger.fragments.WifiFragment;
 
-public class MainActivity extends SuperActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
+public class MainActivity extends SuperActivity implements View.OnClickListener {
 
-    private static final int REQUEST_PERMISSION_BT = 22;
-    private static final int REQUEST_ENABLE_BT = 23;
-
-    private ChatHelper chatHelper;
-    private List<PeerDevice> peerDeviceList;
-    private DeviceAdapter adapter;
-    private ListView listView;
+    WifiFragment wifiFragment;
+    BluetoothFragment bluetoothFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        wifiFragment = (WifiFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_wifi);
+        bluetoothFragment = (BluetoothFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_bluetooth);
+
         WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifi.setWifiEnabled(true);
-
-        peerDeviceList = new ArrayList<>();
-        chatHelper = ChatHelper.getInstance(new Callback() {
-
-            @Override
-            public void peersChanged(List<?> peerDevices) {
-                adapter.refresh((List<PeerDevice>) peerDevices);
-            }
-
-            @Override
-            public void notSupported() {
-                Toast.makeText(getApplicationContext(), "Bluetooth is not available", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void notEnabled() {
-                Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-                startActivity(discoverableIntent);
-            }
-
-            @Override
-            public void notDiscoverable() {
-                Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-                startActivity(discoverableIntent);
-            }
-
-            @Override
-            public void onConnection(boolean connected, String deviceName) {
-                if (connected) {
-                    PeerDevice device = null;
-                    for (PeerDevice dev : peerDeviceList) {
-                        if (dev.name.equals(deviceName)) {
-                            device = dev;
-                            break;
-                        }
-                    }
-                    Toast.makeText(getApplicationContext(), "Connected to " + device.name, Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-                    intent.putExtra(Constants.DEVICE, device);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), "Could not connect.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        chatHelper.init(this);
-
-        adapter = new DeviceAdapter(getApplicationContext(), peerDeviceList);
-        listView = (ListView) findViewById(R.id.list_view_devices);
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener(this);
     }
 
     @Override
@@ -107,24 +41,19 @@ public class MainActivity extends SuperActivity implements View.OnClickListener,
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.actionbar_toggle:
-                chatHelper.toggle();
+                if(wifiFragment.isVisible()) {
+                    wifiFragment.close();
+                } else {
+                    wifiFragment.open();
+                }
+
+                if(bluetoothFragment.isVisible()) {
+                    bluetoothFragment.close();
+                } else {
+                    bluetoothFragment.open();
+                }
                 break;
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_PERMISSION_BT: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                } else {
-                    Toast.makeText(this, "This permission is required", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        chatHelper.connect(position);
-    }
 }

@@ -12,15 +12,13 @@ import edu.csulb.android.bluetoothmessenger.Constants;
 import edu.csulb.android.bluetoothmessenger.interfaces.Callback;
 import edu.csulb.android.bluetoothmessenger.interfaces.HelperInterface;
 import edu.csulb.android.bluetoothmessenger.interfaces.MessageCallback;
-import edu.csulb.android.bluetoothmessenger.interfaces.MessageInterface;
 
-public class ChatHelper implements HelperInterface, MessageInterface {
+public class ChatHelper implements HelperInterface {
 
     private static ChatHelper chatHelper;
     private static Callback callback;
 
     private BluetoothHelper bluetoothHelper;
-    private WifiHelper wifiHelper;
     private Context context;
     private MessageCallback messageCallback;
 
@@ -38,26 +36,25 @@ public class ChatHelper implements HelperInterface, MessageInterface {
     @Override
     public void init(Context context) {
 
-        bluetoothHelper = new BluetoothHelper(context, callback);
-        wifiHelper = new WifiHelper(context, callback);
         this.context = context;
-        // Init wifi first
-        wifiHelper.init(context);
+
+        bluetoothHelper = new BluetoothHelper(context, callback);
+        bluetoothHelper.init(context);
     }
 
     @Override
     public boolean isAvailable() {
-        return bluetoothHelper.isAvailable() || wifiHelper.isAvailable();
+        return bluetoothHelper.isAvailable();
     }
 
     @Override
     public boolean isEnabled() {
-        return bluetoothHelper.isEnabled() || wifiHelper.isEnabled();
+        return bluetoothHelper.isEnabled();
     }
 
     @Override
     public boolean isConnected() {
-        return bluetoothHelper.isConnected() || wifiHelper.isConnected();
+        return bluetoothHelper.isConnected();
     }
 
     @Override
@@ -65,29 +62,22 @@ public class ChatHelper implements HelperInterface, MessageInterface {
         if (bluetoothHelper.isEnabled()) {
             bluetoothHelper.connect(position);
         }
-        if (wifiHelper.isEnabled()) {
-            wifiHelper.connect(position);
-        }
     }
 
     @Override
     public void toggle() {
         bluetoothHelper.toggle();
-        wifiHelper.toggle();
     }
 
     @Override
     public void close() {
         bluetoothHelper.close();
-        wifiHelper.close();
     }
 
     @Override
     public void sendTextMessage(byte[] b) {
         if (bluetoothHelper.isConnected()) {
             bluetoothHelper.sendTextMessage(b);
-        } else if (wifiHelper.isConnected()) {
-            wifiHelper.sendTextMessage(b);
         }
     }
 
@@ -123,6 +113,5 @@ public class ChatHelper implements HelperInterface, MessageInterface {
     @Override
     public void registerMessageCallback(MessageCallback messageCallback) {
         bluetoothHelper.registerMessageCallback(messageCallback);
-        wifiHelper.registerMessageCallback(messageCallback);
     }
 }
