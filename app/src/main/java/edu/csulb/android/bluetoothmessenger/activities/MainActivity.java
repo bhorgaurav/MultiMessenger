@@ -23,6 +23,7 @@ public class MainActivity extends SuperActivity implements View.OnClickListener 
         setContentView(R.layout.activity_main);
 
         wifiFragment = (WifiFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_wifi);
+        wifiFragment.close();
         bluetoothFragment = (BluetoothFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_bluetooth);
 
         WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -41,13 +42,13 @@ public class MainActivity extends SuperActivity implements View.OnClickListener 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.actionbar_toggle:
-                if(wifiFragment.isVisible()) {
+                if (wifiFragment.isVisible()) {
                     wifiFragment.close();
                 } else {
                     wifiFragment.open();
                 }
 
-                if(bluetoothFragment.isVisible()) {
+                if (bluetoothFragment.isVisible()) {
                     bluetoothFragment.close();
                 } else {
                     bluetoothFragment.open();
@@ -55,5 +56,4 @@ public class MainActivity extends SuperActivity implements View.OnClickListener 
                 break;
         }
     }
-
 }

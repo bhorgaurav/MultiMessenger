@@ -1,18 +1,24 @@
 package edu.csulb.android.bluetoothmessenger;
 
+import android.net.wifi.p2p.WifiP2pDevice;
+
 public class Utils {
 
-    public int indexOf(byte[] outerArray, byte[] smallerArray) {
-        for (int i = 0; i < outerArray.length - smallerArray.length + 1; ++i) {
-            boolean found = true;
-            for (int j = 0; j < smallerArray.length; ++j) {
-                if (outerArray[i + j] != smallerArray[j]) {
-                    found = false;
-                    break;
-                }
-            }
-            if (found) return i;
+    public static String getDeviceStatus(int deviceStatus) {
+        switch (deviceStatus) {
+            case WifiP2pDevice.AVAILABLE:
+                return "Available";
+            case WifiP2pDevice.INVITED:
+                return "Invited";
+            case WifiP2pDevice.CONNECTED:
+                return "Connected";
+            case WifiP2pDevice.FAILED:
+                return "Failed";
+            case WifiP2pDevice.UNAVAILABLE:
+                return "Unavailable";
+            default:
+                return "Unknown";
+
         }
-        return -1;
     }
 }

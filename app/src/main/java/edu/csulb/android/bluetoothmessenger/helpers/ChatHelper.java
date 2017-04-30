@@ -12,6 +12,11 @@ import edu.csulb.android.bluetoothmessenger.Constants;
 import edu.csulb.android.bluetoothmessenger.interfaces.Callback;
 import edu.csulb.android.bluetoothmessenger.interfaces.HelperInterface;
 import edu.csulb.android.bluetoothmessenger.interfaces.MessageCallback;
+import edu.csulb.android.bluetoothmessenger.router.AllEncompasingP2PClient;
+import edu.csulb.android.bluetoothmessenger.router.MeshNetworkManager;
+import edu.csulb.android.bluetoothmessenger.router.Packet;
+import edu.csulb.android.bluetoothmessenger.router.Sender;
+import edu.csulb.android.bluetoothmessenger.wifi.WiFiDirectBroadcastReceiver;
 
 public class ChatHelper implements HelperInterface {
 
@@ -78,6 +83,15 @@ public class ChatHelper implements HelperInterface {
     public void sendTextMessage(byte[] b) {
         if (bluetoothHelper.isConnected()) {
             bluetoothHelper.sendTextMessage(b);
+        }
+        try {
+            for (AllEncompasingP2PClient c : MeshNetworkManager.routingTable.values()) {
+                if (c.getMac().equals(MeshNetworkManager.getSelf().getMac()))
+                    continue;
+                Sender.queuePacket(new Packet(Packet.TYPE.MESSAGE, b, c.getMac(), WiFiDirectBroadcastReceiver.MAC));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

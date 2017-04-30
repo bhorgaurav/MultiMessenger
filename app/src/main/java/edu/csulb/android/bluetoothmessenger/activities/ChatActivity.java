@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
@@ -23,10 +24,12 @@ import android.widget.Toast;
 import com.github.piasy.rxandroidaudio.AudioRecorder;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,20 +40,63 @@ import edu.csulb.android.bluetoothmessenger.adapters.MessageAdapter;
 import edu.csulb.android.bluetoothmessenger.helpers.ChatHelper;
 import edu.csulb.android.bluetoothmessenger.interfaces.MessageCallback;
 import edu.csulb.android.bluetoothmessenger.pojos.MessageObject;
-import edu.csulb.android.bluetoothmessenger.pojos.PeerDevice;
 
 public class ChatActivity extends AppCompatActivity implements View.OnTouchListener {
 
     private static final int PICK_IMAGE = 11;
     private static final int MY_PERMISSIONS_REQUEST = 22;
-    private PeerDevice device;
+    private static int messageType;
+    private static boolean isProcessing = false;
     private ChatHelper chatHelper;
     private EditText editTextMessage;
     private List<MessageObject> messageObjectList;
     private ListView listView;
-    private MessageAdapter adapter;
+    private static MessageAdapter adapter;
     private AudioRecorder mAudioRecorder;
     private File mAudioFile;
+
+    public static void addMessage(byte[] message) {
+        System.out.println("addMessage");
+        if (isProcessing) {
+            switch (messageType) {
+                case Constants.TYPE_TEXT:
+                    adapter.add(new MessageObject(new String(message), Constants.TYPE_TEXT, false));
+                    break;
+                case Constants.TYPE_IMAGE:
+                    Bitmap bmp = BitmapFactory.decodeByteArray(message, 0, message.length);
+                    adapter.add(new MessageObject(bmp, Constants.TYPE_IMAGE, false));
+                    break;
+                case Constants.TYPE_AUDIO:
+                    try {
+                        File f = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "Recording_" + System.nanoTime() + ".aac");
+                        if (!f.exists()) {
+                            f.createNewFile();
+                        }
+                        FileOutputStream fos = new FileOutputStream(f);
+                        fos.write(message);
+                        fos.flush();
+                        fos.close();
+
+                        adapter.add(new MessageObject(f, Constants.TYPE_AUDIO, false));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
+            }
+            isProcessing = false;
+        } else {
+            try {
+                // Message is a JSON. Next set of messages will be audio or image.
+                JSONObject json = new JSONObject(new String(message));
+//                expectedFileSize = json.getInt(Constants.MESSAGE_SIZE);
+                messageType = json.getInt(Constants.MESSAGE_TYPE);
+                isProcessing = true;
+            } catch (JSONException e) {
+                adapter.add(new MessageObject(new String(message), Constants.TYPE_TEXT, false));
+                isProcessing = false;
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +106,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST);
 
-        Intent intent = getIntent();
-        device = (PeerDevice) intent.getSerializableExtra(Constants.DEVICE);
-
-        getSupportActionBar().setTitle(device.name);
         editTextMessage = (EditText) findViewById(R.id.edit_text_message);
         listView = (ListView) findViewById(R.id.list_view_messages);
         ImageButton buttonRecordAudio = (ImageButton) findViewById(R.id.button_record_audio);
@@ -81,6 +123,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
                 MessageObject m = (MessageObject) object;
                 messageObjectList.add(m);
                 adapter.notifyDataSetChanged();
+                listView.scrollListBy(1);
             }
         });
         mAudioRecorder = AudioRecorder.getInstance();
@@ -92,9 +135,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
                 String text = editTextMessage.getText().toString();
                 if (!TextUtils.isEmpty(text)) {
                     chatHelper.sendTextMessage(text.getBytes());
+
                     editTextMessage.setText("");
                     messageObjectList.add(new MessageObject(text, Constants.TYPE_TEXT, true));
                     adapter.notifyDataSetChanged();
+                    listView.scrollListBy(1);
                 }
                 break;
             case R.id.button_pick_photo:
@@ -153,6 +198,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnTouchListe
             File temp = mAudioFile;
             messageObjectList.add(new MessageObject(temp, Constants.TYPE_AUDIO, true));
             adapter.notifyDataSetChanged();
+            listView.scrollListBy(1);
         }
         return true;
     }
