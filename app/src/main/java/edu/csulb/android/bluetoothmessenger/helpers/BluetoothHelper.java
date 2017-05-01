@@ -208,6 +208,8 @@ public class BluetoothHelper implements HelperInterface {
         try {
             mBluetoothAdapter.cancelDiscovery();
             BluetoothDevice device = pairedDevices.get(position);
+            device.setPairingConfirmation(true);
+
             if (chatService.getState() == BluetoothChatService.STATE_NONE) {
                 chatService.startAndConnect(device);
             } else {

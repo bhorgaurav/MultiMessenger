@@ -64,9 +64,7 @@ public class ChatHelper implements HelperInterface {
 
     @Override
     public void connect(int position) {
-        if (bluetoothHelper.isEnabled()) {
-            bluetoothHelper.connect(position);
-        }
+        bluetoothHelper.connect(position);
     }
 
     @Override
