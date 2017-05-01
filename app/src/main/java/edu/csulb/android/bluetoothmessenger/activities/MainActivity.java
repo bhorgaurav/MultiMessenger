@@ -1,8 +1,10 @@
 package edu.csulb.android.bluetoothmessenger.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.SwitchCompat;
 import android.view.Menu;
 import android.view.View;
@@ -21,6 +23,8 @@ public class MainActivity extends SuperActivity implements View.OnClickListener 
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 25);
 
         wifiFragment = (WifiFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_wifi);
         wifiFragment.close();

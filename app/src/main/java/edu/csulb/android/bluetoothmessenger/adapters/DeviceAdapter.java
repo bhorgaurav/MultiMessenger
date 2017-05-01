@@ -42,7 +42,7 @@ public class DeviceAdapter extends ArrayAdapter<PeerDevice> {
 
         PeerDevice peerDevice = objects.get(position);
         holder.name.setText(peerDevice.name);
-        holder.description.setText(peerDevice.description);
+        holder.description.setText(peerDevice.deviceAddress);
         return convertView;
     }
 

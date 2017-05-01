@@ -4,10 +4,10 @@ import java.io.Serializable;
 
 public class PeerDevice implements Serializable {
 
-    public String name, description;
+    public String name, deviceAddress;
 
-    public PeerDevice(String name, String description) {
+    public PeerDevice(String name, String deviceAddress) {
         this.name = name;
-        this.description = description;
+        this.deviceAddress = deviceAddress;
     }
 }

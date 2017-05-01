@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -37,11 +38,21 @@ public class BluetoothFragment extends Fragment implements AdapterView.OnItemCli
     private DeviceAdapter adapter;
     private ListView listView;
     private View rootView;
+    private Button buttonDiscover;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_bluetooth, container, false);
+
+        buttonDiscover = (Button) rootView.findViewById(R.id.buttonDiscover);
+        buttonDiscover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                chatHelper.startDiscovery();
+            }
+        });
+
 
         adapter = new DeviceAdapter(getContext(), peerDeviceList);
         listView = (ListView) rootView.findViewById(R.id.list_view_devices);

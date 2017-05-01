@@ -145,6 +145,14 @@ public class BluetoothHelper implements HelperInterface {
             callback.notDiscoverable();
         }
 
+        Set<BluetoothDevice> newPairedDevices = mBluetoothAdapter.getBondedDevices();
+        pairedDevices.clear();
+        if (newPairedDevices.size() > 0) {
+            for (BluetoothDevice d : newPairedDevices) {
+                addDevice(d);
+            }
+        }
+
         receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
@@ -155,17 +163,29 @@ public class BluetoothHelper implements HelperInterface {
                 }
             }
         };
-
-        Set<BluetoothDevice> newPairedDevices = mBluetoothAdapter.getBondedDevices();
-        pairedDevices.clear();
-        if (newPairedDevices.size() > 0) {
-            for (BluetoothDevice d : newPairedDevices) {
-                addDevice(d);
-            }
-        }
         context.registerReceiver(receiver, filter);
 
         chatService = new BluetoothChatService(context, handler);
+    }
+
+    public void startDiscovery() {
+
+        mBluetoothAdapter.startDiscovery();
+
+        Handler mHandler = new Handler();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mBluetoothAdapter.stopLeScan(null);
+            }
+        }, 60000);
+
+        mBluetoothAdapter.startLeScan(new BluetoothAdapter.LeScanCallback() {
+            @Override
+            public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                addDevice(device);
+            }
+        });
     }
 
     @Override
@@ -235,10 +255,19 @@ public class BluetoothHelper implements HelperInterface {
     }
 
     private void addDevice(BluetoothDevice device) {
-        String deviceName = device.getName();
-        String deviceHardwareAddress = device.getAddress();
-        peerDevices.add(new PeerDevice(deviceName, deviceHardwareAddress));
-        pairedDevices.add(device);
-        callback.peersChanged(peerDevices);
+        boolean isPresent = false;
+        for (PeerDevice d : peerDevices) {
+            if (d.deviceAddress.equals(device.getAddress())) {
+                isPresent = true;
+                break;
+            }
+        }
+        if (!isPresent) {
+            String deviceName = device.getName();
+            String deviceHardwareAddress = device.getAddress();
+            peerDevices.add(new PeerDevice(deviceName, deviceHardwareAddress));
+            pairedDevices.add(device);
+            callback.peersChanged(peerDevices);
+        }
     }
 }

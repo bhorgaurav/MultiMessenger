@@ -128,4 +128,8 @@ public class ChatHelper implements HelperInterface {
     public void registerMessageCallback(MessageCallback messageCallback) {
         bluetoothHelper.registerMessageCallback(messageCallback);
     }
+
+    public void startDiscovery() {
+        bluetoothHelper.startDiscovery();
+    }
 }
