@@ -31,7 +31,6 @@ import edu.csulb.android.bluetoothmessenger.pojos.PeerDevice;
 public class BluetoothFragment extends Fragment implements AdapterView.OnItemClickListener {
 
     private static final int REQUEST_PERMISSION_BT = 22;
-    private static final int REQUEST_ENABLE_BT = 23;
 
     private ChatHelper chatHelper;
     private List<PeerDevice> peerDeviceList = new ArrayList<>();
@@ -53,7 +52,6 @@ public class BluetoothFragment extends Fragment implements AdapterView.OnItemCli
             }
         });
 
-
         adapter = new DeviceAdapter(getContext(), peerDeviceList);
         listView = (ListView) rootView.findViewById(R.id.list_view_devices);
         listView.setAdapter(adapter);
@@ -62,8 +60,8 @@ public class BluetoothFragment extends Fragment implements AdapterView.OnItemCli
         chatHelper = ChatHelper.getInstance(new Callback() {
 
             @Override
-            public void peersChanged(List<?> peerDevices) {
-                adapter.refresh((List<PeerDevice>) peerDevices);
+            public void peersChanged(List<PeerDevice> peerDevices) {
+                adapter.refresh((peerDevices));
             }
 
             @Override
@@ -86,11 +84,11 @@ public class BluetoothFragment extends Fragment implements AdapterView.OnItemCli
             }
 
             @Override
-            public void onConnection(boolean connected, String deviceName) {
+            public void onConnection(boolean connected, String deviceAddress) {
                 if (connected) {
                     PeerDevice device = null;
                     for (PeerDevice dev : peerDeviceList) {
-                        if (dev.name.equals(deviceName)) {
+                        if (deviceAddress.equals(dev.deviceAddress)) {
                             device = dev;
                             break;
                         }

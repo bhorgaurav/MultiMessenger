@@ -104,7 +104,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 return;
             }
 
-            NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+            NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
 
             if (networkInfo.isConnected()) {
                 // we are connected with the other device, request connection
@@ -127,7 +127,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
             //Launch receiver and sender once connected to someone
             if (!Receiver.running) {
-                Receiver r = new Receiver(wifiFragment);
+                Receiver r = new Receiver(wifiFragment.getActivity());
                 new Thread(r).start();
                 Sender s = new Sender();
                 new Thread(s).start();

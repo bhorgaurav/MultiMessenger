@@ -133,7 +133,7 @@ public class WifiFragment extends ListFragment implements PeerListListener, Wifi
              * This shouldn't be hard coded, but for our purposes we wanted to
 			 * demonstrate bridging.
 			 */
-            this.connectToAccessPoint("DIRECT-Sq-Android_ca89", "c5umx0mw");
+//            this.connectToAccessPoint("DIRECT-Sq-Android_ca89", "c5umx0mw");
             // connectToAccessPoint(String ssid, String passphrase)
         }
         startDiscovery();

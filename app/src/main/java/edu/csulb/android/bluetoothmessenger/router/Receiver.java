@@ -1,5 +1,6 @@
 package edu.csulb.android.bluetoothmessenger.router;
 
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -25,14 +26,14 @@ public class Receiver implements Runnable {
     /**
      * A ref to the fragment
      */
-    static WifiFragment fragment;
+    static FragmentActivity fragment;
 
     /**
      * Constructor with fragment
      *
      * @param a
      */
-    public Receiver(WifiFragment a) {
+    public Receiver(FragmentActivity a) {
         Receiver.fragment = a;
         running = true;
     }
@@ -147,7 +148,7 @@ public class Receiver implements Runnable {
                                     new AllEncompasingP2PClient(p.getSenderMac(), p.getSenderIP(), p.getSenderMac(),
                                             MeshNetworkManager.getSelf().getGroupOwnerMac()));
                         }
-                        fragment.getActivity().runOnUiThread(new Runnable() {
+                        fragment.runOnUiThread(new Runnable() {
 
                             @Override
                             public void run() {

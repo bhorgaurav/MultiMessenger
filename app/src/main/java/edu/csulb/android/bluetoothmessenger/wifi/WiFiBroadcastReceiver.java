@@ -79,7 +79,7 @@ public class WiFiBroadcastReceiver extends BroadcastReceiver {
             checkState(iTemp);
         } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
             Log.d("WiFiBroadcastReceiver", "NETWORK_STATE_CHANGED_ACTION");
-            NetworkInfo netInfo = (NetworkInfo) intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+            NetworkInfo netInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
             DetailedState state = netInfo.getDetailedState();
             Log.d("WiFiBroadcastReceiver", "	state = " + state.name());
             changeState(state, context);
@@ -110,7 +110,7 @@ public class WiFiBroadcastReceiver extends BroadcastReceiver {
                     .getConnectionInfo().getMacAddress()));
 
             if (!Receiver.running) {
-                Receiver r = new Receiver(this.wifiFragment);
+                Receiver r = new Receiver(this.wifiFragment.getActivity());
                 new Thread(r).start();
                 Sender s = new Sender();
                 new Thread(s).start();

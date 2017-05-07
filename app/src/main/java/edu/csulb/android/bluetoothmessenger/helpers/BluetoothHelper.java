@@ -1,7 +1,9 @@
 package edu.csulb.android.bluetoothmessenger.helpers;
 
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +17,8 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -61,7 +65,7 @@ public class BluetoothHelper implements HelperInterface {
                         switch (msg.arg1) {
                             case BluetoothChatService.STATE_CONNECTED:
                                 connected = true;
-                                String deviceName = msg.getData().getString(Constants.DEVICE_NAME);
+                                String deviceName = msg.getData().getString(Constants.DEVICE_ADDRESS);
                                 callback.onConnection(connected, deviceName);
                                 break;
                             case BluetoothChatService.STATE_CONNECTING:
@@ -115,10 +119,10 @@ public class BluetoothHelper implements HelperInterface {
                                 break;
                         }
                         break;
-                    case Constants.MESSAGE_DEVICE_NAME:
+                    case Constants.MESSAGE_DEVICE_ADDRESS:
                         connected = true;
-                        String deviceName = msg.getData().getString(Constants.DEVICE_NAME);
-                        callback.onConnection(connected, deviceName);
+                        String deviceAddress = msg.getData().getString(Constants.DEVICE_ADDRESS);
+                        callback.onConnection(connected, deviceAddress);
                         break;
                     case Constants.MESSAGE_TOAST:
 //                        callback.gotMessage(msg.getData());
@@ -138,7 +142,6 @@ public class BluetoothHelper implements HelperInterface {
         }
         if (!mBluetoothAdapter.isEnabled()) {
             callback.notEnabled();
-            return;
         }
 
         if (mBluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
@@ -207,14 +210,31 @@ public class BluetoothHelper implements HelperInterface {
     public void connect(int position) {
         try {
             mBluetoothAdapter.cancelDiscovery();
-            BluetoothDevice device = pairedDevices.get(position);
-            device.setPairingConfirmation(true);
+            final BluetoothDevice device = pairedDevices.get(position);
+//            device.setPairingConfirmation(true);
 
-            if (chatService.getState() == BluetoothChatService.STATE_NONE) {
-                chatService.startAndConnect(device);
-            } else {
-                chatService.connect(device, false);
-            }
+            boolean proxy = mBluetoothAdapter.getProfileProxy(context, new BluetoothProfile.ServiceListener() {
+                @Override
+                public void onServiceConnected(int profile, BluetoothProfile proxy) {
+                    Method connect = null;
+                    try {
+                        connect = BluetoothA2dp.class.getDeclaredMethod("connect", BluetoothDevice.class);
+                        connect.invoke(proxy, device);
+                    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                    if (chatService.getState() == BluetoothChatService.STATE_NONE) {
+                        chatService.startAndConnect(device);
+                    } else {
+                        chatService.connect(device, false);
+                    }
+                }
+
+                @Override
+                public void onServiceDisconnected(int profile) {
+
+                }
+            }, BluetoothProfile.A2DP);
         } catch (Exception e) {
             e.printStackTrace();
         }
